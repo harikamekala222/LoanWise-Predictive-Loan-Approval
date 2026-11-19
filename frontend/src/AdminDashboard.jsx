@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import "./AdminDashboard.css";
 
-const API_BASE = "http://127.0.0.1:8000";
+const API_BASE = `http://${window.location.hostname}:8000`;
 
 async function getJson(path, token) {
   const response = await fetch(`${API_BASE}${path}`, {

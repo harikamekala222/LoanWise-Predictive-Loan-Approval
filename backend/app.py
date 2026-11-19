@@ -40,18 +40,41 @@ app = FastAPI(title="LoanWise API")
 app.include_router(auth_router)
 app.include_router(admin_router)
 
+# --------------------------------------------------
+# CORS configuration
+# --------------------------------------------------
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        f"http://localhost:{port}"
-        for port in range(5173, 5177)
-    ] + [
-        f"http://127.0.0.1:{port}"
-        for port in range(5173, 5177)
+        # EC2 frontend
+        "http://13.235.78.93",
+
+        # Local frontend development
+        *[
+            f"http://localhost:{port}"
+            for port in range(5173, 5177)
+        ],
+
+        # Local frontend development using 127.0.0.1
+        *[
+            f"http://127.0.0.1:{port}"
+            for port in range(5173, 5177)
+        ],
     ],
     allow_credentials=True,
-    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-    allow_headers=["Authorization", "Content-Type"],
+    allow_methods=[
+        "GET",
+        "POST",
+        "PUT",
+        "PATCH",
+        "DELETE",
+        "OPTIONS",
+    ],
+    allow_headers=[
+        "Authorization",
+        "Content-Type",
+    ],
 )
 
 
@@ -414,6 +437,7 @@ def predict(
         probabilities = model.predict_proba(input_data)[0]
         classes = list(model.classes_)
         approval_index = classes.index(1)
+
         approval_probability = float(
             probabilities[approval_index]
         )
@@ -461,6 +485,7 @@ def predict(
 
     except Exception as exc:
         print(f"Failed to save prediction: {exc}")
+
         raise HTTPException(
             status_code=500,
             detail="Unable to save the prediction to the database.",

@@ -1,0 +1,104 @@
+services:
+
+  # ==================================================
+  # MYSQL DATABASE
+  # ==================================================
+  mysql:
+    image: mysql:8.4
+    container_name: loanwise-mysql
+    restart: unless-stopped
+
+    environment:
+      MYSQL_ROOT_PASSWORD: RootLoanWise@123
+      MYSQL_DATABASE: loanwise_db
+      MYSQL_USER: loanwise
+      MYSQL_PASSWORD: LoanWiseDB@123
+
+    volumes:
+      - loanwise_mysql_data:/var/lib/mysql
+
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "mysqladmin",
+          "ping",
+          "-h",
+          "localhost",
+          "-u",
+          "loanwise",
+          "-pLoanWiseDB@123"
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+    networks:
+      - loanwise-network
+
+
+  # ==================================================
+  # FASTAPI BACKEND
+  # ==================================================
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+
+    container_name: loanwise-backend
+    restart: unless-stopped
+
+    environment:
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_USER: loanwise
+      DB_PASSWORD: LoanWiseDB@123
+      DB_NAME: loanwise_db
+      JWT_SECRET_KEY: LoanWiseTestingSecret@2026
+
+    ports:
+      - "8000:8000"
+
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+    networks:
+      - loanwise-network
+
+
+  # ==================================================
+  # REACT FRONTEND
+  # ==================================================
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+
+    container_name: loanwise-frontend
+    restart: unless-stopped
+
+    ports:
+      - "80:80"
+
+    depends_on:
+      - backend
+
+    networks:
+      - loanwise-network
+
+
+# ==================================================
+# MYSQL PERSISTENT VOLUME
+# ==================================================
+volumes:
+  loanwise_mysql_data:
+
+
+# ==================================================
+# NETWORK
+# ==================================================
+networks:
+  loanwise-network:
+    driver: bridge
