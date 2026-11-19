@@ -12,7 +12,7 @@ pipeline {
             steps {
                 git branch: 'main',
                     credentialsId: 'github-account',
-                    url: 'https://github.com/YOUR_USERNAME/LoanWise-Predictive-Loan-Approval.git'
+                    url: 'https://github.com/harikamekala222/LoanWise-Predictive-Loan-Approval.git'
             }
         }
 
